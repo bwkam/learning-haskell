@@ -1,7 +1,6 @@
-{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
+import Data.Function
+import Data.List
 
-{-# HLINT ignore "Redundant lambda" #-}
-{-# HLINT ignore "Avoid lambda" #-}
 doubleMe x = x + x
 
 doubleUs x y = doubleMe x + doubleMe y
@@ -26,8 +25,12 @@ length' (_ : xs) = 1 + length' xs
 -- 3
 
 sum' :: (Num a) => [a] -> a
-sum' [] = 0
-sum' (x : xs) = x + sum' xs
+sum' = foldl (+) 0
+
+-- we don't have to pass a list because that's anyways a partially applied function, so we are anyawys going to pass a list lol
+
+-- sum' [] = 0
+-- sum' (x : xs) = x + sum' xs
 
 -- [1, 2, 3, 4]
 -- 1 + sum' [2, 3, 4]
@@ -173,9 +176,15 @@ flip' f x y = f y x
 -- addThree :: (Num a) => a -> a -> a -> a
 -- addThree = \x -> \y -> \z -> x + y + z
 
-map' :: (a -> b) -> [a] -> [b]
-map' _ [] = []
-map' f (x : xs) = f x : map' f xs
+map1 :: (a -> b) -> [a] -> [b]
+map1 f = foldl (\acc x -> f x : acc) []
+
+map2 :: (a -> b) -> [a] -> [b]
+map2 f = foldr (\x acc -> f x : acc) []
+
+-- or
+-- map' _ [] = []
+-- map' f (x : xs) = f x : map' f xs
 
 filter' :: (a -> Bool) -> [a] -> [a]
 filter' _ [] = []
@@ -198,3 +207,33 @@ numLongChains :: Int
 numLongChains = length (filter isLong (map chain [1 .. 100]))
   where
     isLong xs = length xs >= 15
+
+addExample :: (Num a) => a -> a -> a
+addExample x y = x + y
+
+-- addExample = \x -> \y -> x + y
+
+elem' :: (Eq a) => a -> [a] -> Bool
+elem' y = foldl (\acc x -> (x == y) || acc) False
+
+product' :: (Num a) => [a] -> a
+product' = foldr1 (*)
+
+flipList :: [a] -> [a]
+flipList = foldl (flip (:)) []
+
+search :: (Eq a) => [a] -> [a] -> Bool
+search needle haystack =
+  let nlen = length needle
+   in foldl
+        (\acc x -> (take nlen x == needle) || acc)
+        False
+        (tails haystack)
+
+on' :: (b -> b -> c) -> (a -> b) -> a -> a -> c
+f `on'` g = \x y -> f (g x) (g y)
+
+-- (==) `on` (> 0)
+
+-- (==) ((>0) x) ((>0) y)
+-- \x y -> (x > 0) == (y > 0)
